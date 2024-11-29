@@ -3,7 +3,7 @@ import { usePayment } from "../hooks/usePayment";
 
 export default function Home() {
   const [nisn, setNisn] = useState("");
-  const { siswa, message, paymentMonths, handleSubmit, handleMidtransPayment, resetData } = usePayment();
+  const { siswa, message, paymentMonths, handleSubmit, handleMidtransPayment, resetData, months } = usePayment();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [additionalMonths, setAdditionalMonths] = useState(1);
 
@@ -82,14 +82,11 @@ export default function Home() {
             )}
             {paymentMonths.length > 0 ? (
               <div className="mt-6">
-                <h3 className="text-xl font-semibold text-gray-700">Bulan yang belum dibayar:</h3>
-                <ul className="mt-2 text-gray-600">
-                  {paymentMonths.map((month, index) => (
-                    <li key={index} className="text-sm">{month}</li>
-                  ))}
-                </ul>
+                <p className="text-gray-500 text-sm">
+                {message} 
+                </p>
                 <button
-                  onClick={() => handleMidtransPayment(nisn)}
+                  onClick={() => handleMidtransPayment(nisn, months)}
                   className="mt-6 inline-flex items-center justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                 >
                   Bayar Sekarang

@@ -9,7 +9,7 @@ import {
   limit
 } from "firebase/firestore";
 
-
+// Fetch student data by NISN
 export const getSiswaByNisn = async (nisn: string) => {
   try {
     console.log("Fetching all student data...");
@@ -40,18 +40,25 @@ export const getSiswaByNisn = async (nisn: string) => {
     return null;
   }
 };
-// Check if the student has made payments for a specific month and year
+
+// Check if the student has made a payment for a specific month and year
 export async function checkPembayaran(nisn: string, month: string, year: number) {
-  const pembayaranRef = collection(db, "pembayaran");
-  const q = query(
-    pembayaranRef,
-    where("nisn", "==", nisn),
-    where("month", "==", month),
-    where("year", "==", year)
-  );
-  const querySnapshot = await getDocs(q);
-  const payments = querySnapshot.docs.map((doc) => doc.data());
-  return payments || [];
+  try {
+    const pembayaranRef = collection(db, "pembayaran");
+    const q = query(
+      pembayaranRef,
+      where("nisn", "==", nisn),
+      where("month", "==", month),
+      where("year", "==", year)
+    );
+    const querySnapshot = await getDocs(q);
+
+    const payments = querySnapshot.docs.map((doc) => doc.data());
+    return payments || [];
+  } catch (error) {
+    console.error("Error checking payment:", error);
+    return [];
+  }
 }
 
 // Save payment data to Firestore
@@ -61,49 +68,70 @@ export async function savePembayaran(data: {
   year: number;
   status: string;
 }) {
-  const pembayaranRef = collection(db, "pembayaran");
-  await addDoc(pembayaranRef, data);
+  try {
+    const pembayaranRef = collection(db, "pembayaran");
+    await addDoc(pembayaranRef, data);
+    console.log("Payment data saved successfully.");
+  } catch (error) {
+    console.error("Error saving payment data:", error);
+  }
 }
 
-
+// Get the last payment made by the student
 export async function getLastPayment(nisn: string) {
-  const pembayaranRef = collection(db, "pembayaran");
+  try {
+    const pembayaranRef = collection(db, "pembayaran");
 
-  const q = query(
-    pembayaranRef,
-    where("nisn", "==", nisn),
-    orderBy("year", "desc"),
-    orderBy("month", "desc"),
-    limit(1)
-  );
+    const q = query(
+      pembayaranRef,
+      where("nisn", "==", nisn),
+      orderBy("year", "desc"),
+      orderBy("month", "desc"),
+      limit(1)
+    );
 
-  const querySnapshot = await getDocs(q);
-  
-  if (querySnapshot.empty) {
-    throw new Error("No payments found for this student.");
+    // Execute the query
+    const querySnapshot = await getDocs(q);
+    
+    // Check if no documents were found
+    if (querySnapshot.empty) {
+      console.log(`No payments found for student with NISN: ${nisn}`);
+      return null; // Return null instead of throwing an error
+    }
+
+    // Extract the last payment data
+    const lastPayment = querySnapshot.docs[0].data();
+    return lastPayment;
+  } catch (error) {
+    console.error("Error fetching last payment:", error);
+    throw new Error("Failed to fetch last payment. Please try again.");
   }
-
-  const lastPayment = querySnapshot.docs[0].data();
-  return lastPayment;
 }
+
+// Check the last payment made by the student
 export async function checkLastPembayaran(nisn: string) {
-  const pembayaranRef = collection(db, "pembayaran");
+  try {
+    const pembayaranRef = collection(db, "pembayaran");
 
-  const q = query(
-    pembayaranRef,
-    where("nisn", "==", nisn),
-    orderBy("year", "desc"),
-    orderBy("month", "desc"),
-    limit(1)
-  );
+    const q = query(
+      pembayaranRef,
+      where("nisn", "==", nisn),
+      orderBy("year", "desc"),
+      orderBy("month", "desc"),
+      limit(1)
+    );
 
-  const querySnapshot = await getDocs(q);
-  
-  if (querySnapshot.empty) {
-    throw new Error("No payments found for this student.");
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      throw new Error("No payments found for this student.");
+    }
+
+    const lastPayment = querySnapshot.docs[0].data();
+    return lastPayment;
+  } catch (error) {
+    console.error("Error checking last payment:", error);
+    throw new Error("Failed to check last payment. Please try again.");
   }
-
-  const lastPayment = querySnapshot.docs[0].data();
-  return lastPayment;
 }
 
